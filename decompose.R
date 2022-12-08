@@ -32,39 +32,58 @@ Ldata_T = Ldata_T[1:300]
 jour = 4
 plot(Ldata_T[(24*(jour-1)):(jour*24)], type='l')
 """
-data_ts = ts(data = Ldata_T, start = 1, frequency = 24)
+data_ts = ts(data = Ldata_T, start = c(1, 24), frequency = 1)
+data_ts
 plot(data_ts)
+help(ts)
+
+acf(data_ts, lag=40)
+pacf(data_ts, lag = 40)
 
 library("tseries")
 adf.test(data_ts)   # H0 Non Stationnaire   : REJETE
 kpss.test(data_ts)  # H0 Stationnaire       : ACCEPTE
 
 
-
-# Un coup d'oeil mois par mois par mois
 library('forecast')
 seasonplot(data_ts)
 
 #dev.off()
 
-
 # Modélisation additive sur la série complète
-Decomp = decompose(data_ts, type="additive")
-plot(Decomp) # La fonction 'decompose' propose un affichage condensé des composantes
-
+Decomp_add = decompose(data_ts, type="additive")
+plot(Decomp_add) # La fonction 'decompose' propose un affichage condensé des composantes
+Decomp_mul = decompose(data_ts, type="multiplicative")
+plot(Decomp_mul)
 
 # Voyons ça de plus près...
-plot(Decomp$trend, type="l", col="blue", ylab="Tendance")
-plot(Decomp$seasonal, type="l", col="red", ylab="Périodicité")
-plot(Decomp$figure, type="l", col="magenta", ylab="Motif périodique")
-plot(Decomp$random, type="l", col="forestgreen", ylab="Fluctuation")
+plot(Decomp_add$trend, type="l", col="blue", ylab="Tendance")
+plot(Decomp_add$seasonal, type="l", col="red", ylab="Périodicité")
+plot(Decomp_add$figure, type="l", col="magenta", ylab="Motif périodique")
+plot(Decomp_add$random, type="l", col="forestgreen", ylab="Fluctuation")
 
-Decomp$random
 
-partie_rand = Decomp$random[13:288]
+Decomp_add$trend+Decomp_add$seasonal+Decomp_add$random
 
-adf.test(partie_rand)
-kpss.test(partie_rand)
+
+
+Decomp_add$random[]
+
+partie_rand = Decomp_add$random[13:288]
+
+adf.test(partie_rand)   # rejeté
+kpss.test(partie_rand)  # accepté
+
+
+
+
+
+
+
+
+
+
+
 
 
 

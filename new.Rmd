@@ -1,0 +1,87 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+data = read.csv("/users/2023/ds2/118003905/M2_serie_chrono/export_nb_par_semaine.csv", sep = ',')
+data
+```
+```{r}
+library(stats)
+library(tseries)
+library(TSA)
+#library(xts)
+#library(forecast)
+```
+```{r}
+data <- data[c(2:138),]
+data
+```
+
+
+
+```{r}
+#data$week = as.Date(data$week)
+ts_data = ts(data$publishedAt, frequency = 7)
+ts_data
+```
+
+
+```{r}
+plot(ts_data)
+```
+
+
+```{r}
+l_ts = log(ts_data)
+plot(l_ts)
+```
+
+
+```{r}
+acf(l_ts)
+```
+```{r}
+pacf(l_ts)
+```
+#Test de stationnarité du modèle
+
+```{r}
+adf.test(l_ts)
+```
+
+
+```{r}
+kpss.test(l_ts)
+```
+
+
+```{r}
+Box.test(l_ts)
+```
+```{r}
+l_ts
+```
+
+
+```{r}
+dec_ts = decompose(l_ts, type = "additive")
+plot(dec_ts)
+```
+
+
+```{r}
+dec_ts$random
+```
+
+
+```{r}
+decompose(ts1)
+```
+
+

@@ -8,7 +8,8 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
 ```{r}
-data = read.csv("/users/2023/ds2/118003905/M2_serie_chrono/export_nb_par_semaine.csv", sep = ',')
+dossier = '/users/2023/ds2/118003905/M2_serie_chrono/'
+data = read.csv("export_nb_par_semaine.csv", sep = ',')
 data
 ```
 ```{r}
@@ -19,15 +20,17 @@ library(TSA)
 #library(forecast)
 ```
 ```{r}
-data <- data[c(2:138),]
+print(length(data[,2]))
+data = data[c(2:137),]
 data
+
 ```
 
 
 
 ```{r}
 #data$week = as.Date(data$week)
-ts_data = ts(data$publishedAt, frequency = 7)
+ts_data = ts(data$publishedAt, frequency = 5)
 ts_data
 ```
 
@@ -44,28 +47,29 @@ plot(l_ts)
 
 
 ```{r}
-acf(l_ts)
+acf(l_ts, lag = 40)
 ```
 ```{r}
-pacf(l_ts)
+pacf(l_ts, lag =40)
 ```
 #Test de stationnarité du modèle
 
 ```{r}
-adf.test(l_ts)
+adf.test(l_ts)    # H0 Non Stationnaire   : REJETE
 ```
 
 
 ```{r}
-kpss.test(l_ts)
+kpss.test(l_ts)   # H0 Stationnaire       : ACCEPTE
 ```
 
 
 ```{r}
-Box.test(l_ts)
+Box.test(l_ts, type="Ljung-Box", lag=5)   # H0 pas d'autocorrélation : est-ce un bruit blanc ?
 ```
 ```{r}
-l_ts
+plot(l_ts)
+
 ```
 
 
@@ -76,12 +80,34 @@ plot(dec_ts)
 
 
 ```{r}
-dec_ts$random
+plot(dec_ts$trend, type="l", col="blue", ylab="Tendance")
+plot(dec_ts$seasonal, type="l", col="red", ylab="Périodicité")
+plot(dec_ts$figure, type="l", col="magenta", ylab="Motif périodique")
+plot(dec_ts$random[3:10], type="l", col="forestgreen", ylab="Fluctuation")
+```
+
+```{r}
+random_ts = dec_ts$random[3:134]
+
+```
+
+
+
+```{r}
+adf.test(random_ts)   # H0 Non Stationnaire   : REJETE
+kpss.test(random_ts)  # H0 Stationnaire       : ACCEPTE
 ```
 
 
 ```{r}
-decompose(ts1)
+adf.test(l_ts)   # H0 Non Stationnaire   : REJETE
+kpss.test(l_ts)  # H0 Stationnaire       : ACCEPTE
 ```
 
+
+Modèle proposé par AutoArima de Forecast :
+```{r}
+library("forecast")
+auto.arima(l_ts)
+```
 

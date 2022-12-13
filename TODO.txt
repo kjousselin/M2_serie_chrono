@@ -1,0 +1,94 @@
+											
+											
+											
+											
+	ETAPES 				A AJOUTER  ?		AUTRE A FAIRE PLUS TARD				Modèles à tester :
+											
+	Importer les données										MODELE 1
+	data = read.csv("export_nb_par_semaine.csv", sep = ',')						# à la fin : on refait tous les tests pour vérifier : bruit blanc				AR(5)
+					# Recherche de NA ?						ARMA = arima(LVolcano, order=c(5, 0, 0), include.mean = TRUE)
+	Suppression des données abhérantes sur les bords				which(is.na(Y))						summary(ARMA) # Tout est significatif
+	data = data[c(2:137),]			ou :	sum(is.na(Y))						BIC(ARMA)
+											
+	Transformer en TS										
+	ts_data = ts(data$publishedAt, frequency = 5)										
+											
+	Tester la stationarité										
+	library("tseries")				## Modifier la fréquence ? (period = )?						
+	adf.test(Rain)	# H0 : Non stationnaire									
+	kpss.test(Rain)	# H0 : stationnaire									
+					## Tester avec d'autres transformation de Cox						
+	Prendre le log										
+	l_ts = log(ts_data)				# Serait-ce simplement un bruit blanc décentré ?						
+					Box.test(Rain, type="Ljung-Box", lag=5)						
+	décompose ?										
+	regression linéaire à la main ?										
+	regression_lin = lm(Y_lin2~c(1:365))										
+	regarder la significativité des coefs : ici non significatif sans doute										
+											
+											
+	Autorrélation / Autocorrélation Partielles										
+	acf(l_ts, lag = 40)	# On constate que : il y a bien une périodicité de 5 semaines.									
+	pacf(l_ts, lag = 40)	# On constate que : la PACF s'annule au bout de p+1=6 => Modélisation 1 par un AR(5) ?									
+											
+	Test avec autoarima										
+	package('forecast')										
+	auto.arima(l_ts, max.d=0, ic="bic")		Modélisation 2								
+	auto.arima(l_ts, max.d=0, ic="aic")		Modélisation 3								
+											
+	Test avec d'autre arima :										
+	Arima / arima										
+	Tps=1:n										
+	Arima(res1, c(2,0,0), include.mean = FALSE, xreg=Tps)										
+											
+	# Tester d'autres modeles avec d=1 et/ou D=1										
+	# Voir etrait du TP9 ci-contre										
+											
+	# Choisir un model : critère ?					OU BIEN faire des prévisions pour chaque SARIMA testé puis choix par MSE :					
+						### Calculer l'erreur quadratique moyen des modèles					
+	# Vérifier les résidus : bruit blanc : Autocorrélation ? Normalité ?					MSE1 = sum( (Pred1$mean-LakeHuron[(N-9):N])^2 )/10					
+	Box.test(ARMA$residuals, lag=5)		# H0 bruit blanc			MSE2 = sum( (Pred2$mean-LakeHuron[(N-9):N])^2 )/10					
+	acf(ARMA, lag = 40)		# Est-ce qu'il reste des autocorrélations ?			MSE3 = sum( (Pred3$mean-LakeHuron[(N-9):N])^2 )/10					
+	pacf(ARMA, lag = 40)		# Est-ce qu'il reste des autocorrélations partielles ?			MSE4 = sum( (Pred4$mean-LakeHuron[(N-9):N])^2 )/10					
+	shapiro.test(ARMA$residuals) 		# H0 normalité			MSE = c(MSE1, MSE2, MSE3, MSE4)					
+	checkupRes(ARMA$residuals)										
+	dev.off()  		# Enlever le partionnement graphique de la fenêtre								
+						for (k in c(1:4)){					
+	# Faire des prédictions avec le model final					  print(MSE[k])					
+	h = 10					}					
+	Pred = forecast(Mod2, h = h, level = c(80,95), xreg = cbind(Tps[(N-9):N], Tps[(N-9):N]^2) )								EXTRAIT DU TP9 :		
+	Val_predict = Pred$mean										
+	lines(Tps[(N-9):N],Val_predict, col='green')								# Donc on élimine la possibilité d=D=0 dans le modèle SARIMA(p,d,q)(P,D,Q)_s		
+	plot(Pred)	# ? Affichage avec prédictions et zone d'incertitude							acf(LAP, lag=40)		
+									pacf(LAP, lag=40)		
+											
+	# Conclusion : le dataset qui gagnerait probablement à  être modélisé par une autre approche								# La saisonnalité S=12		
+											
+									LAP_diff12 = diff(LAP, 12)		
+									adf.test(LAP_diff12)   # H0 Non Stationnaire   : ACCEPTE		
+									kpss.test(LAP_diff12)  # H0 Stationnaire       : ACCEPTE		
+									# Les tests se contredisent mais dans une zone d'incertitude (proche de 0.1)		
+									# On va donc tester (d,D) = (0,1)     cas où (I-B)^12		
+											
+									LAP_diff12_D = diff(diff(LAP, 12))		
+									adf.test(LAP_diff12_D)   # H0 Non Stationnaire   : REJETE		
+									kpss.test(LAP_diff12_D)  # H0 Stationnaire       : ACCEPTE		
+									# => Stationnaire		
+									# On va donc tester (d,D) = (1,1)     cas où (I-B)(I-B)^12		
+											
+									plot(LAP_diff12_D)		
+											
+									# Ca ne sert à rien de tester d,D = (1,0) car on n'éliminera pas la périodicité de 12.		
+											
+											
+									#### cas où (d,D) = (0,1) (modèle 1)		
+									acf(LAP_diff12, lag=40, ylim=c(-1,1))		
+									pacf(LAP_diff12, lag=40, ylim=c(-1,1))		
+									# P=0 ou P=1		
+											
+											
+									#### cas où (d,D) = (1,1) (modèle 2)		
+									acf(LAP_diff12_D, lag=40, ylim=c(-1,1))		
+									pacf(LAP_diff12_D, lag=40, ylim=c(-1,1))		
+									# P = 0 ?		
+									# Q = 1 ?		

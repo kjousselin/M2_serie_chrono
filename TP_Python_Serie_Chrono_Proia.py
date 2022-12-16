@@ -90,8 +90,9 @@ plt.show()
 ModF.plot_diagnostics()
 plt.show()                                      
 
-TestLB = sm.stats.acorr_ljungbox(ModF.resid, lags=[52]) # Test de Ljung-Box au lag 52
+TestLB = sm.stats.acorr_ljungbox(ModF.resid, lags=[52]) # Test de Ljung-Box au lag 52 :         H0 : 'pas d'autocorrelation'
 print("LB p-val : ", TestLB["lb_pvalue"])
+
 TestN = sm.stats.diagnostic.lilliefors(ModF.resid)      # Test de Lilliefors de normalité (autre que Shapiro)
 print("Norm p-val : ", TestN[1])
 # Bruit blanc mais normalité douteuse
